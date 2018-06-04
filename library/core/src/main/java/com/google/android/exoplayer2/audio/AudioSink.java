@@ -25,14 +25,13 @@ import java.nio.ByteBuffer;
  * A sink that consumes audio data.
  * <p>
  * Before starting playback, specify the input audio format by calling
- * {@link #configure(String, int, int, int, int, int[], int, int)}.
+ * {@link #configure(int, int, int, int, int[], int, int)}.
  * <p>
  * Call {@link #handleBuffer(ByteBuffer, long)} to write data, and {@link #handleDiscontinuity()}
  * when the data being fed is discontinuous. Call {@link #play()} to start playing the written data.
  * <p>
- * Call {@link #configure(String, int, int, int, int, int[], int, int)} whenever the input format
- * changes. The sink will be reinitialized on the next call to
- * {@link #handleBuffer(ByteBuffer, long)}.
+ * Call {@link #configure(int, int, int, int, int[], int, int)} whenever the input format changes.
+ * The sink will be reinitialized on the next call to {@link #handleBuffer(ByteBuffer, long)}.
  * <p>
  * Call {@link #reset()} to prepare the sink to receive audio data from a new playback position.
  * <p>
@@ -76,7 +75,7 @@ public interface AudioSink {
      *
      * @param bufferSize The size of the sink's buffer, in bytes.
      * @param bufferSizeMs The size of the sink's buffer, in milliseconds, if it is configured for
-     *     PCM output. {@link C#TIME_UNSET} if it is configured for passthrough output, as the
+     *     PCM output. {@link C#TIME_UNSET} if it is configured for encoded audio output, as the
      *     buffered media can have a variable bitrate so the duration may be unknown.
      * @param elapsedSinceLastFeedMs The time since the sink was last fed data, in milliseconds.
      */
@@ -166,13 +165,12 @@ public interface AudioSink {
   void setListener(Listener listener);
 
   /**
-   * Returns whether it's possible to play audio in the specified format using encoded audio
-   * passthrough.
+   * Returns whether it's possible to play audio in the specified encoding.
    *
-   * @param mimeType The format mime type.
-   * @return Whether it's possible to play audio in the format using encoded audio passthrough.
+   * @param encoding The audio encoding.
+   * @return Whether it's possible to play audio in the specified encoding.
    */
-  boolean isPassthroughSupported(String mimeType);
+  boolean isEncodingSupported(@C.Encoding int encoding);
 
   /**
    * Returns the playback position in the stream starting at zero, in microseconds, or
@@ -186,28 +184,31 @@ public interface AudioSink {
   /**
    * Configures (or reconfigures) the sink.
    *
-   * @param inputMimeType The MIME type of audio data provided in the input buffers.
+   * @param inputEncoding The encoding of audio data provided in the input buffers.
    * @param inputChannelCount The number of channels.
    * @param inputSampleRate The sample rate in Hz.
-   * @param inputPcmEncoding For PCM formats, the encoding used. One of
-   *     {@link C#ENCODING_PCM_16BIT}, {@link C#ENCODING_PCM_16BIT}, {@link C#ENCODING_PCM_24BIT}
-   *     and {@link C#ENCODING_PCM_32BIT}.
    * @param specifiedBufferSize A specific size for the playback buffer in bytes, or 0 to infer a
    *     suitable buffer size.
    * @param outputChannels A mapping from input to output channels that is applied to this sink's
    *     input as a preprocessing step, if handling PCM input. Specify {@code null} to leave the
    *     input unchanged. Otherwise, the element at index {@code i} specifies index of the input
-   *     channel to map to output channel {@code i} when preprocessing input buffers. After the
-   *     map is applied the audio data will have {@code outputChannels.length} channels.
-   * @param trimStartSamples The number of audio samples to trim from the start of data written to
-   *     the sink after this call.
-   * @param trimEndSamples The number of audio samples to trim from data written to the sink
+   *     channel to map to output channel {@code i} when preprocessing input buffers. After the map
+   *     is applied the audio data will have {@code outputChannels.length} channels.
+   * @param trimStartFrames The number of audio frames to trim from the start of data written to the
+   *     sink after this call.
+   * @param trimEndFrames The number of audio frames to trim from data written to the sink
    *     immediately preceding the next call to {@link #reset()} or this method.
    * @throws ConfigurationException If an error occurs configuring the sink.
    */
-  void configure(String inputMimeType, int inputChannelCount, int inputSampleRate,
-      @C.PcmEncoding int inputPcmEncoding, int specifiedBufferSize, @Nullable int[] outputChannels,
-      int trimStartSamples, int trimEndSamples) throws ConfigurationException;
+  void configure(
+      @C.Encoding int inputEncoding,
+      int inputChannelCount,
+      int inputSampleRate,
+      int specifiedBufferSize,
+      @Nullable int[] outputChannels,
+      int trimStartFrames,
+      int trimEndFrames)
+      throws ConfigurationException;
 
   /**
    * Starts or resumes consuming audio if initialized.
@@ -228,8 +229,7 @@ public interface AudioSink {
    * Returns whether the data was handled in full. If the data was not handled in full then the same
    * {@link ByteBuffer} must be provided to subsequent calls until it has been fully consumed,
    * except in the case of an intervening call to {@link #reset()} (or to
-   * {@link #configure(String, int, int, int, int, int[], int, int)} that causes the sink to be
-   * reset).
+   * {@link #configure(int, int, int, int, int[], int, int)} that causes the sink to be reset).
    *
    * @param buffer The buffer containing audio data.
    * @param presentationTimeUs The presentation timestamp of the buffer in microseconds.
