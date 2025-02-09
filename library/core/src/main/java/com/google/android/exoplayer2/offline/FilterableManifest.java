@@ -22,9 +22,13 @@ import java.util.List;
  * keys.
  *
  * @param <T> The manifest type.
- * @param <K> The stream key type.
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
-public interface FilterableManifest<T, K> {
+@Deprecated
+public interface FilterableManifest<T> {
 
   /**
    * Returns a copy of the manifest including only the streams specified by the given keys. If the
@@ -33,5 +37,5 @@ public interface FilterableManifest<T, K> {
    * @param streamKeys A non-empty list of stream keys.
    * @return The filtered manifest.
    */
-  T copy(List<K> streamKeys);
+  T copy(List<StreamKey> streamKeys);
 }

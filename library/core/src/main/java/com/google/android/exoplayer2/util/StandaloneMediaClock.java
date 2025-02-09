@@ -15,13 +15,18 @@
  */
 package com.google.android.exoplayer2.util;
 
-import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackParameters;
 
 /**
  * A {@link MediaClock} whose position advances with real time based on the playback parameters when
  * started.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public final class StandaloneMediaClock implements MediaClock {
 
   private final Clock clock;
@@ -38,12 +43,10 @@ public final class StandaloneMediaClock implements MediaClock {
    */
   public StandaloneMediaClock(Clock clock) {
     this.clock = clock;
-    this.playbackParameters = PlaybackParameters.DEFAULT;
+    playbackParameters = PlaybackParameters.DEFAULT;
   }
 
-  /**
-   * Starts the clock. Does nothing if the clock is already started.
-   */
+  /** Starts the clock. Does nothing if the clock is already started. */
   public void start() {
     if (!started) {
       baseElapsedMs = clock.elapsedRealtime();
@@ -51,9 +54,7 @@ public final class StandaloneMediaClock implements MediaClock {
     }
   }
 
-  /**
-   * Stops the clock. Does nothing if the clock is already stopped.
-   */
+  /** Stops the clock. Does nothing if the clock is already stopped. */
   public void stop() {
     if (started) {
       resetPosition(getPositionUs());
@@ -79,8 +80,10 @@ public final class StandaloneMediaClock implements MediaClock {
     if (started) {
       long elapsedSinceBaseMs = clock.elapsedRealtime() - baseElapsedMs;
       if (playbackParameters.speed == 1f) {
-        positionUs += C.msToUs(elapsedSinceBaseMs);
+        positionUs += Util.msToUs(elapsedSinceBaseMs);
       } else {
+        // Add the media time in microseconds that will elapse in elapsedSinceBaseMs milliseconds of
+        // wallclock time
         positionUs += playbackParameters.getMediaTimeUsForPlayoutTimeMs(elapsedSinceBaseMs);
       }
     }
@@ -88,18 +91,16 @@ public final class StandaloneMediaClock implements MediaClock {
   }
 
   @Override
-  public PlaybackParameters setPlaybackParameters(PlaybackParameters playbackParameters) {
+  public void setPlaybackParameters(PlaybackParameters playbackParameters) {
     // Store the current position as the new base, in case the playback speed has changed.
     if (started) {
       resetPosition(getPositionUs());
     }
     this.playbackParameters = playbackParameters;
-    return playbackParameters;
   }
 
   @Override
   public PlaybackParameters getPlaybackParameters() {
     return playbackParameters;
   }
-
 }

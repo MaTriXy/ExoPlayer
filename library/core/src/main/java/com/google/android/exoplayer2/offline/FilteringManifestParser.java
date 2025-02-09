@@ -16,30 +16,39 @@
 package com.google.android.exoplayer2.offline;
 
 import android.net.Uri;
+import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.upstream.ParsingLoadable.Parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-/** A manifest parser that includes only the tracks identified by the given track keys. */
-public final class FilteringManifestParser<T extends FilterableManifest<T, K>, K>
-    implements Parser<T> {
+/**
+ * A manifest parser that includes only the streams identified by the given stream keys.
+ *
+ * @param <T> The {@link FilterableManifest} type.
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
+ */
+@Deprecated
+public final class FilteringManifestParser<T extends FilterableManifest<T>> implements Parser<T> {
 
-  private final Parser<T> parser;
-  private final List<K> trackKeys;
+  private final Parser<? extends T> parser;
+  @Nullable private final List<StreamKey> streamKeys;
 
   /**
    * @param parser A parser for the manifest that will be filtered.
-   * @param trackKeys The track keys. If null or empty then filtering will not occur.
+   * @param streamKeys The stream keys. If null or empty then filtering will not occur.
    */
-  public FilteringManifestParser(Parser<T> parser, List<K> trackKeys) {
+  public FilteringManifestParser(Parser<? extends T> parser, @Nullable List<StreamKey> streamKeys) {
     this.parser = parser;
-    this.trackKeys = trackKeys;
+    this.streamKeys = streamKeys;
   }
 
   @Override
   public T parse(Uri uri, InputStream inputStream) throws IOException {
     T manifest = parser.parse(uri, inputStream);
-    return trackKeys == null || trackKeys.isEmpty() ? manifest : manifest.copy(trackKeys);
+    return streamKeys == null || streamKeys.isEmpty() ? manifest : manifest.copy(streamKeys);
   }
 }

@@ -19,25 +19,35 @@ import com.google.android.exoplayer2.offline.FilterableManifest;
 import java.util.Collections;
 import java.util.List;
 
-/** Represents an HLS playlist. */
-public abstract class HlsPlaylist implements FilterableManifest<HlsPlaylist, RenditionKey> {
+/**
+ * Represents an HLS playlist.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
+ */
+@Deprecated
+public abstract class HlsPlaylist implements FilterableManifest<HlsPlaylist> {
 
-  /**
-   * The base uri. Used to resolve relative paths.
-   */
+  /** The base uri. Used to resolve relative paths. */
   public final String baseUri;
-  /**
-   * The list of tags in the playlist.
-   */
+  /** The list of tags in the playlist. */
   public final List<String> tags;
+  /**
+   * Whether the media is formed of independent segments, as defined by the
+   * #EXT-X-INDEPENDENT-SEGMENTS tag.
+   */
+  public final boolean hasIndependentSegments;
 
   /**
    * @param baseUri See {@link #baseUri}.
    * @param tags See {@link #tags}.
+   * @param hasIndependentSegments See {@link #hasIndependentSegments}.
    */
-  protected HlsPlaylist(String baseUri, List<String> tags) {
+  protected HlsPlaylist(String baseUri, List<String> tags, boolean hasIndependentSegments) {
     this.baseUri = baseUri;
     this.tags = Collections.unmodifiableList(tags);
+    this.hasIndependentSegments = hasIndependentSegments;
   }
-
 }

@@ -15,22 +15,32 @@
  */
 package com.google.android.exoplayer2.source.dash;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.dash.manifest.RangedUri;
 
 /**
- * An implementation of {@link DashSegmentIndex} that wraps a {@link ChunkIndex} parsed from a
- * media stream.
+ * An implementation of {@link DashSegmentIndex} that wraps a {@link ChunkIndex} parsed from a media
+ * stream.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public final class DashWrappingSegmentIndex implements DashSegmentIndex {
 
   private final ChunkIndex chunkIndex;
+  private final long timeOffsetUs;
 
   /**
    * @param chunkIndex The {@link ChunkIndex} to wrap.
+   * @param timeOffsetUs An offset to subtract from the times in the wrapped index, in microseconds.
    */
-  public DashWrappingSegmentIndex(ChunkIndex chunkIndex) {
+  public DashWrappingSegmentIndex(ChunkIndex chunkIndex, long timeOffsetUs) {
     this.chunkIndex = chunkIndex;
+    this.timeOffsetUs = timeOffsetUs;
   }
 
   @Override
@@ -39,13 +49,28 @@ public final class DashWrappingSegmentIndex implements DashSegmentIndex {
   }
 
   @Override
-  public int getSegmentCount(long periodDurationUs) {
+  public long getFirstAvailableSegmentNum(long periodDurationUs, long nowUnixTimeUs) {
+    return 0;
+  }
+
+  @Override
+  public long getSegmentCount(long periodDurationUs) {
     return chunkIndex.length;
   }
 
   @Override
+  public long getAvailableSegmentCount(long periodDurationUs, long nowUnixTimeUs) {
+    return chunkIndex.length;
+  }
+
+  @Override
+  public long getNextSegmentAvailableTimeUs(long periodDurationUs, long nowUnixTimeUs) {
+    return C.TIME_UNSET;
+  }
+
+  @Override
   public long getTimeUs(long segmentNum) {
-    return chunkIndex.timesUs[(int) segmentNum];
+    return chunkIndex.timesUs[(int) segmentNum] - timeOffsetUs;
   }
 
   @Override
@@ -61,12 +86,11 @@ public final class DashWrappingSegmentIndex implements DashSegmentIndex {
 
   @Override
   public long getSegmentNum(long timeUs, long periodDurationUs) {
-    return chunkIndex.getChunkIndex(timeUs);
+    return chunkIndex.getChunkIndex(timeUs + timeOffsetUs);
   }
 
   @Override
   public boolean isExplicit() {
     return true;
   }
-
 }

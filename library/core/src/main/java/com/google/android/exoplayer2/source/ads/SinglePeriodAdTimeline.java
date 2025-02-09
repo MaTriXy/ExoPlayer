@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.ads;
 
+import androidx.annotation.VisibleForTesting;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ForwardingTimeline;
@@ -22,8 +23,15 @@ import com.google.android.exoplayer2.util.Assertions;
 
 /**
  * A {@link Timeline} for sources that have ads.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
-/* package */ final class SinglePeriodAdTimeline extends ForwardingTimeline {
+@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+@Deprecated
+public final class SinglePeriodAdTimeline extends ForwardingTimeline {
 
   private final AdPlaybackState adPlaybackState;
 
@@ -44,24 +52,16 @@ import com.google.android.exoplayer2.util.Assertions;
   @Override
   public Period getPeriod(int periodIndex, Period period, boolean setIds) {
     timeline.getPeriod(periodIndex, period, setIds);
+    long durationUs =
+        period.durationUs == C.TIME_UNSET ? adPlaybackState.contentDurationUs : period.durationUs;
     period.set(
         period.id,
         period.uid,
         period.windowIndex,
-        period.durationUs,
+        durationUs,
         period.getPositionInWindowUs(),
-        adPlaybackState);
+        adPlaybackState,
+        period.isPlaceholder);
     return period;
   }
-
-  @Override
-  public Window getWindow(
-      int windowIndex, Window window, boolean setTag, long defaultPositionProjectionUs) {
-    window = super.getWindow(windowIndex, window, setTag, defaultPositionProjectionUs);
-    if (window.durationUs == C.TIME_UNSET) {
-      window.durationUs = adPlaybackState.contentDurationUs;
-    }
-    return window;
-  }
-
 }

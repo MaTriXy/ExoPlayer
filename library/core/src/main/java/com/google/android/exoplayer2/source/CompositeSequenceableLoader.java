@@ -15,11 +15,19 @@
  */
 package com.google.android.exoplayer2.source;
 
+import static java.lang.Math.min;
+
 import com.google.android.exoplayer2.C;
 
 /**
  * A {@link SequenceableLoader} that encapsulates multiple other {@link SequenceableLoader}s.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public class CompositeSequenceableLoader implements SequenceableLoader {
 
   protected final SequenceableLoader[] loaders;
@@ -34,7 +42,7 @@ public class CompositeSequenceableLoader implements SequenceableLoader {
     for (SequenceableLoader loader : loaders) {
       long loaderBufferedPositionUs = loader.getBufferedPositionUs();
       if (loaderBufferedPositionUs != C.TIME_END_OF_SOURCE) {
-        bufferedPositionUs = Math.min(bufferedPositionUs, loaderBufferedPositionUs);
+        bufferedPositionUs = min(bufferedPositionUs, loaderBufferedPositionUs);
       }
     }
     return bufferedPositionUs == Long.MAX_VALUE ? C.TIME_END_OF_SOURCE : bufferedPositionUs;
@@ -46,7 +54,7 @@ public class CompositeSequenceableLoader implements SequenceableLoader {
     for (SequenceableLoader loader : loaders) {
       long loaderNextLoadPositionUs = loader.getNextLoadPositionUs();
       if (loaderNextLoadPositionUs != C.TIME_END_OF_SOURCE) {
-        nextLoadPositionUs = Math.min(nextLoadPositionUs, loaderNextLoadPositionUs);
+        nextLoadPositionUs = min(nextLoadPositionUs, loaderNextLoadPositionUs);
       }
     }
     return nextLoadPositionUs == Long.MAX_VALUE ? C.TIME_END_OF_SOURCE : nextLoadPositionUs;
@@ -83,4 +91,13 @@ public class CompositeSequenceableLoader implements SequenceableLoader {
     return madeProgress;
   }
 
+  @Override
+  public boolean isLoading() {
+    for (SequenceableLoader loader : loaders) {
+      if (loader.isLoading()) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

@@ -18,7 +18,6 @@ package com.google.android.exoplayer2.drm;
 import com.google.android.exoplayer2.drm.ExoMediaDrm.KeyRequest;
 import com.google.android.exoplayer2.drm.ExoMediaDrm.ProvisionRequest;
 import com.google.android.exoplayer2.util.Assertions;
-import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -26,7 +25,13 @@ import java.util.UUID;
  * supported. This implementation is primarily useful for providing locally stored keys to decrypt
  * ClearKey protected content. It is not suitable for use with Widevine or PlayReady protected
  * content.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public final class LocalMediaDrmCallback implements MediaDrmCallback {
 
   private final byte[] keyResponse;
@@ -39,13 +44,12 @@ public final class LocalMediaDrmCallback implements MediaDrmCallback {
   }
 
   @Override
-  public byte[] executeProvisionRequest(UUID uuid, ProvisionRequest request) throws IOException {
+  public byte[] executeProvisionRequest(UUID uuid, ProvisionRequest request) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public byte[] executeKeyRequest(UUID uuid, KeyRequest request) throws Exception {
+  public byte[] executeKeyRequest(UUID uuid, KeyRequest request) {
     return keyResponse;
   }
-
 }

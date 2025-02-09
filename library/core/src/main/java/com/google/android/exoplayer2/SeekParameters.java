@@ -15,8 +15,9 @@
  */
 package com.google.android.exoplayer2;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.util.Assertions;
+import com.google.android.exoplayer2.util.Util;
 
 /**
  * Parameters that apply to seeking.
@@ -32,7 +33,13 @@ import com.google.android.exoplayer2.util.Assertions;
  * closest to {@code x}. If no sync point falls within the window then the seek will be performed to
  * {@code x - toleranceBeforeUs}. Internally the player may need to seek to an earlier sync point
  * and discard media until this position is reached.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public final class SeekParameters {
 
   /** Parameters for exact seeking. */
@@ -69,6 +76,41 @@ public final class SeekParameters {
     Assertions.checkArgument(toleranceAfterUs >= 0);
     this.toleranceBeforeUs = toleranceBeforeUs;
     this.toleranceAfterUs = toleranceAfterUs;
+  }
+
+  /**
+   * Resolves a seek based on the parameters, given the requested seek position and two candidate
+   * sync points.
+   *
+   * @param positionUs The requested seek position, in microseocnds.
+   * @param firstSyncUs The first candidate seek point, in micrseconds.
+   * @param secondSyncUs The second candidate seek point, in microseconds. May equal {@code
+   *     firstSyncUs} if there's only one candidate.
+   * @return The resolved seek position, in microseconds.
+   */
+  public long resolveSeekPositionUs(long positionUs, long firstSyncUs, long secondSyncUs) {
+    if (toleranceBeforeUs == 0 && toleranceAfterUs == 0) {
+      return positionUs;
+    }
+    long minPositionUs =
+        Util.subtractWithOverflowDefault(positionUs, toleranceBeforeUs, Long.MIN_VALUE);
+    long maxPositionUs = Util.addWithOverflowDefault(positionUs, toleranceAfterUs, Long.MAX_VALUE);
+    boolean firstSyncPositionValid = minPositionUs <= firstSyncUs && firstSyncUs <= maxPositionUs;
+    boolean secondSyncPositionValid =
+        minPositionUs <= secondSyncUs && secondSyncUs <= maxPositionUs;
+    if (firstSyncPositionValid && secondSyncPositionValid) {
+      if (Math.abs(firstSyncUs - positionUs) <= Math.abs(secondSyncUs - positionUs)) {
+        return firstSyncUs;
+      } else {
+        return secondSyncUs;
+      }
+    } else if (firstSyncPositionValid) {
+      return firstSyncUs;
+    } else if (secondSyncPositionValid) {
+      return secondSyncUs;
+    } else {
+      return minPositionUs;
+    }
   }
 
   @Override

@@ -24,7 +24,13 @@ import java.io.IOException;
 
 /**
  * {@link SampleStream} for a particular sample queue in HLS.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 /* package */ final class HlsSampleStream implements SampleStream {
 
   private final int trackGroupIndex;
@@ -62,14 +68,22 @@ import java.io.IOException;
     if (sampleQueueIndex == HlsSampleStreamWrapper.SAMPLE_QUEUE_INDEX_NO_MAPPING_FATAL) {
       throw new SampleQueueMappingException(
           sampleStreamWrapper.getTrackGroups().get(trackGroupIndex).getFormat(0).sampleMimeType);
+    } else if (sampleQueueIndex == HlsSampleStreamWrapper.SAMPLE_QUEUE_INDEX_PENDING) {
+      sampleStreamWrapper.maybeThrowError();
+    } else if (sampleQueueIndex != HlsSampleStreamWrapper.SAMPLE_QUEUE_INDEX_NO_MAPPING_NON_FATAL) {
+      sampleStreamWrapper.maybeThrowError(sampleQueueIndex);
     }
-    sampleStreamWrapper.maybeThrowError();
   }
 
   @Override
-  public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer, boolean requireFormat) {
+  public int readData(
+      FormatHolder formatHolder, DecoderInputBuffer buffer, @ReadFlags int readFlags) {
+    if (sampleQueueIndex == HlsSampleStreamWrapper.SAMPLE_QUEUE_INDEX_NO_MAPPING_NON_FATAL) {
+      buffer.addFlag(C.BUFFER_FLAG_END_OF_STREAM);
+      return C.RESULT_BUFFER_READ;
+    }
     return hasValidSampleQueueIndex()
-        ? sampleStreamWrapper.readData(sampleQueueIndex, formatHolder, buffer, requireFormat)
+        ? sampleStreamWrapper.readData(sampleQueueIndex, formatHolder, buffer, readFlags)
         : C.RESULT_NOTHING_READ;
   }
 

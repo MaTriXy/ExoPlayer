@@ -15,26 +15,25 @@
  */
 package com.google.android.exoplayer2.source.dash.manifest;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.util.Util;
 
 /**
  * A descriptor, as defined by ISO 23009-1, 2nd edition, 5.8.2.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
+@Deprecated
 public final class Descriptor {
 
-  /**
-   * The scheme URI.
-   */
-  @NonNull public final String schemeIdUri;
-  /**
-   * The value, or null.
-   */
+  /** The scheme URI. */
+  public final String schemeIdUri;
+  /** The value, or null. */
   @Nullable public final String value;
-  /**
-   * The identifier, or null.
-   */
+  /** The identifier, or null. */
   @Nullable public final String id;
 
   /**
@@ -42,7 +41,7 @@ public final class Descriptor {
    * @param value The value, or null.
    * @param id The identifier, or null.
    */
-  public Descriptor(@NonNull String schemeIdUri, @Nullable String value, @Nullable String id) {
+  public Descriptor(String schemeIdUri, @Nullable String value, @Nullable String id) {
     this.schemeIdUri = schemeIdUri;
     this.value = value;
     this.id = id;
@@ -57,16 +56,16 @@ public final class Descriptor {
       return false;
     }
     Descriptor other = (Descriptor) obj;
-    return Util.areEqual(schemeIdUri, other.schemeIdUri) && Util.areEqual(value, other.value)
+    return Util.areEqual(schemeIdUri, other.schemeIdUri)
+        && Util.areEqual(value, other.value)
         && Util.areEqual(id, other.id);
   }
 
   @Override
   public int hashCode() {
-    int result = (schemeIdUri != null ? schemeIdUri.hashCode() : 0);
+    int result = schemeIdUri.hashCode();
     result = 31 * result + (value != null ? value.hashCode() : 0);
     result = 31 * result + (id != null ? id.hashCode() : 0);
     return result;
   }
-
 }

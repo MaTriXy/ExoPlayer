@@ -15,20 +15,28 @@
  */
 package com.google.android.exoplayer2.source.chunk;
 
-import android.util.Log;
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.DummyTrackOutput;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.source.SampleQueue;
-import com.google.android.exoplayer2.source.chunk.ChunkExtractorWrapper.TrackOutputProvider;
+import com.google.android.exoplayer2.source.chunk.ChunkExtractor.TrackOutputProvider;
+import com.google.android.exoplayer2.util.Log;
 
 /**
- * An output for {@link BaseMediaChunk}s.
+ * A {@link TrackOutputProvider} that provides {@link TrackOutput TrackOutputs} based on a
+ * predefined mapping from track type to output.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
  */
-/* package */ final class BaseMediaChunkOutput implements TrackOutputProvider {
+@Deprecated
+public final class BaseMediaChunkOutput implements TrackOutputProvider {
 
   private static final String TAG = "BaseMediaChunkOutput";
 
-  private final int[] trackTypes;
+  private final @C.TrackType int[] trackTypes;
   private final SampleQueue[] sampleQueues;
 
   /**
@@ -41,7 +49,7 @@ import com.google.android.exoplayer2.source.chunk.ChunkExtractorWrapper.TrackOut
   }
 
   @Override
-  public TrackOutput track(int id, int type) {
+  public TrackOutput track(int id, @C.TrackType int type) {
     for (int i = 0; i < trackTypes.length; i++) {
       if (type == trackTypes[i]) {
         return sampleQueues[i];
@@ -51,15 +59,11 @@ import com.google.android.exoplayer2.source.chunk.ChunkExtractorWrapper.TrackOut
     return new DummyTrackOutput();
   }
 
-  /**
-   * Returns the current absolute write indices of the individual sample queues.
-   */
+  /** Returns the current absolute write indices of the individual sample queues. */
   public int[] getWriteIndices() {
     int[] writeIndices = new int[sampleQueues.length];
     for (int i = 0; i < sampleQueues.length; i++) {
-      if (sampleQueues[i] != null) {
-        writeIndices[i] = sampleQueues[i].getWriteIndex();
-      }
+      writeIndices[i] = sampleQueues[i].getWriteIndex();
     }
     return writeIndices;
   }
@@ -70,10 +74,7 @@ import com.google.android.exoplayer2.source.chunk.ChunkExtractorWrapper.TrackOut
    */
   public void setSampleOffsetUs(long sampleOffsetUs) {
     for (SampleQueue sampleQueue : sampleQueues) {
-      if (sampleQueue != null) {
-        sampleQueue.setSampleOffsetUs(sampleOffsetUs);
-      }
+      sampleQueue.setSampleOffsetUs(sampleOffsetUs);
     }
   }
-
 }

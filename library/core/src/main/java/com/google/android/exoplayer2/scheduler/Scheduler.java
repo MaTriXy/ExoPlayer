@@ -19,10 +19,16 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 
-/** Schedules a service to be started in the foreground when some {@link Requirements} are met. */
+/**
+ * Schedules a service to be started in the foreground when some {@link Requirements} are met.
+ *
+ * @deprecated com.google.android.exoplayer2 is deprecated. Please migrate to androidx.media3 (which
+ *     contains the same ExoPlayer code). See <a
+ *     href="https://developer.android.com/guide/topics/media/media3/getting-started/migration-guide">the
+ *     migration guide</a> for more details, including a script to help with the migration.
+ */
+@Deprecated
 public interface Scheduler {
-
-  /* package */ boolean DEBUG = false;
 
   /**
    * Schedules a service to be started in the foreground when some {@link Requirements} are met.
@@ -47,4 +53,14 @@ public interface Scheduler {
    * @return Whether cancellation was successful.
    */
   boolean cancel();
+
+  /**
+   * Checks whether this {@link Scheduler} supports the provided {@link Requirements}. If all of the
+   * requirements are supported then the same {@link Requirements} instance is returned. If not then
+   * a new instance is returned containing the subset of the requirements that are supported.
+   *
+   * @param requirements The requirements to check.
+   * @return The supported requirements.
+   */
+  Requirements getSupportedRequirements(Requirements requirements);
 }
